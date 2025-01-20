@@ -1,15 +1,16 @@
 #version 330 core
 
-// Position
+// Position format in the buffer (first 3 values)
 layout (location = 0) in vec3 aPos;
 
-// Color
+// Color format in the buffer (second 3 values, or 4, 5, and 6)
 layout (location = 1) in vec3 aColor;
 
-// Provide color for the fragment shader
+// Output color. Goes to the fragment shader
 out vec3 color;
 
 // Scale the vertices.
+// This is basically a constant we must pass into GLSL and must use.
 uniform float scale;
 
 // World Matrices

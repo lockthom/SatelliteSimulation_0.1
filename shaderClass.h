@@ -13,11 +13,23 @@ std::string get_file_contents(const char* filename);
 class Shader {
 
 public:
+	
+	// Set address for shader reference.
 	GLuint ID;
+
+	// Construct the shader
 	Shader(const char* vertexFile, const char* fragmentFile);
 
+	// Activate shader.
 	void Activate();
+
+	// Delete shader.
 	void Delete();
+
+ private:
+
+	 void compileErrors(unsigned int shader, const char* type);
+
 };
 
 

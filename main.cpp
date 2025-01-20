@@ -100,7 +100,7 @@ int main() {
 	// Specify what openGL can "see" in the window
 	glViewport(0, 0, windowWidth, windowHeight);
 
-	// Declare shader
+	// Declare shader with the vertex and fragment files
 	Shader shaderProgram("default.vert", "default.frag");
 
 	// Create a Vertex Array Object (VAO)
@@ -112,10 +112,11 @@ int main() {
 	EBO EBO1(indices, sizeof(indices));
 
 	// Link info from VBO (position and color) to VAO.
+	// Layout value, number of values, type of values, stride to next set of values, offset from start.
 	VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 6 * sizeof(float), (void*)0);
 	VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 
-	// Unbind for consistency
+	// Unbind for consistency and to prevent unwanted edits
 	VAO1.Unbind();
 	VBO1.Unbind();
 	EBO1.Unbind();
@@ -138,9 +139,11 @@ int main() {
 		// Clear back buffer, assign new color
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// Start shader, point to scaling value.
+		// Start shader
 		shaderProgram.Activate();
-		glUniform1f(uniID, 0.0f);
+
+		// With shader activated, define all the uniforms.
+		glUniform1f(uniID, 0.0f); // Scaling
 
 		// Initialize relevant world matrices
 		glm::mat4 model = glm::mat4(1.0f);

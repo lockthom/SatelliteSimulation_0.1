@@ -1,0 +1,14 @@
+This is a list of tasks that I'm writing in a text file so that it's easier to remember what I can work on if I forget other components or I finish something and need another direction to take. 
+
+
+
+Comprehension:
+
+File: shaderClass.h 
+Task: Figure out exactly how the code works as it was found from a youtube video.
+Line: std::ifstream in(filename, std::ios::binary); 
+
+
+File: shaderClass.cpp
+Task Figure out exactly how the error management works.
+Line: void Shader::compileErrors(unsigned int shader, const char* type) { ... }
