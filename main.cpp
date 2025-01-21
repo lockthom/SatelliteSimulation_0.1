@@ -1,29 +1,27 @@
 // General Imports
-#include<iostream>
-#include<glad/glad.h>
-#include<GLFW/glfw3.h>
-#include<math.h> // May notbe strictly necessary
+#include<iostream>        // Regular C++ stuff
+#include<glad/glad.h>     // OpenGL preparation/ease of use
+#include<GLFW/glfw3.h>    // OpenGL
+#include<stb/stb_image.h> // Textures
+#include<math.h>          // May not be strictly necessary
 
 // openGL Matrix Stuff
-#include<glm/glm.hpp>
-#include<glm/gtc/matrix_transform.hpp>
-#include<glm/gtc/type_ptr.hpp>
+#include<glm/glm.hpp>                  // Matrix Operations Overall (for now)
+#include<glm/gtc/matrix_transform.hpp> // "
+#include<glm/gtc/type_ptr.hpp>         // Allow pointers
 
 // User defined classes
-#include"shaderClass.h"
-#include"VAO.h"
-#include"VBO.h"
-#include"EBO.h"
+#include"Texture.h"     // Textures
+#include"shaderClass.h" // Make shaders
+#include"VAO.h"         // Vertex Array Object
+#include"VBO.h"         // Vertex Buffer Object
+#include"EBO.h"         // Index Buffer Object
+#include"Camera.h"
 
+
+// Window Parameters
 const unsigned int windowWidth =  800;
 const unsigned int windowHeight = 800;
-
-
-void processInput(GLFWwindow* window){
-
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
-}
 
 int main() {
 
@@ -39,16 +37,27 @@ int main() {
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	GLfloat vertices[] = {
+		// Pyramid
+		-0.5f,  0.0f,  0.5f,     0.83f, 0.70f, 0.44f,    0.0f, 0.0f, // -x+z Base
+		-0.5f,  0.0f, -0.5f,     0.83f, 0.70f, 0.44f,    5.0f, 0.0f, // -x-z Base
+		 0.5f,  0.0f, -0.5f,     0.83f, 0.70f, 0.44f,    0.0f, 0.0f, // +x-z Base
+		 0.5f,  0.0f,  0.5f,     0.83f, 0.70f, 0.44f,    5.0f, 0.0f, // +x+z Base
+		 0.0f,  0.8f,  0.0f,     0.92f, 0.86f, 0.76f,    2.5f, 5.0f  // +y Tip
+		// Square for textures (Verts, Colors, Tex. map)
+		//-0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,    0.0f, 0.0f, // Lower left corner
+		//-0.5f,  0.5f, 0.0f,     0.0f, 1.0f, 0.0f,    0.0f, 1.0f, // Upper left corner
+		// 0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,    1.0f, 1.0f, // Upper right corner
+		// 0.5f, -0.5f, 0.0f,     1.0f, 1.0f, 1.0f,    1.0f, 0.0f // Lower right corner
 		// Zelda Triangle + Side Triangle ("XYZ")         ;/;/ RGBA Color
-		-0.5f,     -0.5f * float(sqrt(3)) / 3,     0.0f,   0.8f, 0.3f,  0.02f, // Lower left corner
-		 0.5f,     -0.5f * float(sqrt(3)) / 3,     0.0f,   0.8f, 0.3f,  0.02f, // Lower right corner
-		 0.0f,      0.5f * float(sqrt(3)) * 2 / 3, 0.0f,   1.0f, 0.6f,  0.32f, // Top corner
-		-0.5f / 2,  0.5f * float(sqrt(3)) / 6,     0.0f,   0.9f, 0.45f, 0.17f, // Middle left
-		 0.5f / 2,  0.5f * float(sqrt(3)) / 6,     0.0f,   0.9f, 0.45f, 0.17f, // Middle right
-		 0.0f,     -0.5f * float(sqrt(3)) / 3,     0.0f,   0.8f, 0.3f,  0.02f, // Middle down
-		 0.75f,     0.5f * float(sqrt(3)) / 6,     0.0f,   0.0f, 1.0f,  0.0f, // Side triangle top
-		 1.0f,     -0.5f * float(sqrt(3)) / 3,     0.0f,   0.0f, 0.0f,  1.0f  // Side triangle right
-		// Letter T
+		//-0.5f,     -0.5f * float(sqrt(3)) / 3,     0.0f,   0.8f, 0.3f,  0.02f, // Lower left corner
+		// 0.5f,     -0.5f * float(sqrt(3)) / 3,     0.0f,   0.8f, 0.3f,  0.02f, // Lower right corner
+		// 0.0f,      0.5f * float(sqrt(3)) * 2 / 3, 0.0f,   1.0f, 0.6f,  0.32f, // Top corner
+		//-0.5f / 2,  0.5f * float(sqrt(3)) / 6,     0.0f,   0.9f, 0.45f, 0.17f, // Middle left
+		// 0.5f / 2,  0.5f * float(sqrt(3)) / 6,     0.0f,   0.9f, 0.45f, 0.17f, // Middle right
+		// 0.0f,     -0.5f * float(sqrt(3)) / 3,     0.0f,   0.8f, 0.3f,  0.02f, // Middle down
+		// 0.75f,     0.5f * float(sqrt(3)) / 6,     0.0f,   0.0f, 1.0f,  0.0f, // Side triangle top
+		// 1.0f,     -0.5f * float(sqrt(3)) / 3,     0.0f,   0.0f, 0.0f,  1.0f  // Side triangle right
+		//// Letter T
 		//-0.1f, -0.4f, 0.0f, // Bottom left
 		//-0.1f, 0.2f, 0.0f, // Mid left
 		//-0.3f, 0.2f, 0.0f, // Overhand left
@@ -60,11 +69,21 @@ int main() {
 	};
 
 	GLuint indices[] = {
+		// Pyramid faces (Normal vector rotation outward)
+		0, 1, 2, // 1/2 Base 
+		0, 2, 3, // 2/2 Base
+		0, 3, 4, // +z face
+		2, 4, 3, // +x face
+		1, 4, 2, // -z face
+		0, 4, 1  // -x face
+		//// Square for textures
+		//0, 2, 1, // Upper triangle
+		//0, 3, 2 // Lower triangle
 		// Zelda + Side Indices
-		0, 3, 5, // Lower Left
-		3, 2, 4, // Lower Right
-		5, 4, 1, // Upper Triangle
-		1, 7, 6  // Side Triangle
+		//0, 3, 5, // Lower Left
+		//3, 2, 4, // Lower Right
+		//5, 4, 1, // Upper Triangle
+		//1, 7, 6  // Side Triangle
 		// Letter T indices
 		//0, 1, 7, // Base left
 		//7, 1, 6, // Base right
@@ -111,65 +130,67 @@ int main() {
 	VBO VBO1(vertices, sizeof(vertices));
 	EBO EBO1(indices, sizeof(indices));
 
-	// Link info from VBO (position and color) to VAO.
+	// Link info from VBO (position, color, texture) to VAO.
 	// Layout value, number of values, type of values, stride to next set of values, offset from start.
-	VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 6 * sizeof(float), (void*)0);
-	VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 8 * sizeof(float), (void*)0);
+	VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	VAO1.LinkAttrib(VBO1, 2, 2, GL_FLOAT, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 
 	// Unbind for consistency and to prevent unwanted edits
 	VAO1.Unbind();
 	VBO1.Unbind();
 	EBO1.Unbind();
 
-	// Create ID for the "uniform" (a value) in the shader for scaling.
-	GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
+	// Texture
+	// GL_RBG --> .jpg
+	// GL_RBGA --> .png
+	Texture knifeDuck("UW_Logo.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
+	knifeDuck.texUnit(shaderProgram, "tex0", 0);
 
-	// Bring buffer with color to display
-	glfwSwapBuffers(window);
+	//// Pyramid rotation parameters
+	//float rotation = 0.0f;
+	//double prevTime = glfwGetTime();
+
+	glEnable(GL_DEPTH_TEST);
+
+	// Camera
+
+	Camera camera(windowWidth, windowHeight, glm::vec3(0.0f, 0.0f, 2.0f));
 
 	// Run until there is a reason to close it.
 	while(!glfwWindowShouldClose(window)) {
-	
-		// Checking for new input
-		processInput(window);
+	  
+		//// Checking for new input
+		//processInput(window);
 
 		// Specify color of background
 		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 
-		// Clear back buffer, assign new color
-		glClear(GL_COLOR_BUFFER_BIT);
+		// Clear back buffer and depth buffer for new values.
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// Start shader
+		// Start the shader program on the graphics card
 		shaderProgram.Activate();
 
-		// With shader activated, define all the uniforms.
-		glUniform1f(uniID, 0.0f); // Scaling
+		camera.Inputs(window);
+		camera.Matrix(45.0f, 0.1f, 100.0f, shaderProgram, "camMatrix");
 
-		// Initialize relevant world matrices
-		glm::mat4 model = glm::mat4(1.0f);
-		glm::mat4 view = glm::mat4(1.0f);
-		glm::mat4 proj = glm::mat4(1.0f);
+		/*double crntTime = glfwGetTime();
+		if (crntTime - prevTime >= 1 / 60) {
 
-		// Fill relevant world matrices
-		//                                      X     Y      Z
-		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -2.0f));
-		proj = glm::perspective(glm::radians(45.0f), (float)(windowWidth / windowHeight), 0.1f, 100.0f);
+			rotation += 2.0f;
+			prevTime = crntTime;
 
-		// Connect world matrices to shader
-		int modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-		int viewLoc = glGetUniformLocation(shaderProgram.ID, "view");
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-		int projLoc = glGetUniformLocation(shaderProgram.ID, "proj");
-		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
+		}*/
 		
+		// Bind texture
+		knifeDuck.Bind();
+
 		// Bind vertex array
 		VAO1.Bind();
 
-		// Draw!
-		glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
+		// Draw! (12 for triangle, 6 for texture square)
+		glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(int), GL_UNSIGNED_INT, 0);
 
 		// Swap buffers
 		glfwSwapBuffers(window);
@@ -184,6 +205,7 @@ int main() {
 	VAO1.Delete();
 	VBO1.Delete();
 	EBO1.Delete();
+	knifeDuck.Delete();
 	shaderProgram.Delete();
 
 	// Clean up generally

@@ -147,8 +147,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="EBO.h" />
     <ClInclude Include="shaderClass.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="VAO.h" />
     <ClInclude Include="VBO.h" />
   </ItemGroup>
@@ -158,11 +160,18 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\glad\src\glad.c" />
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="EBO.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="shaderClass.cpp" />
+    <ClCompile Include="stb.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="VAO.cpp" />
     <ClCompile Include="VBO.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="knife_duck.jpg" />
+    <Image Include="UW_Logo.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
