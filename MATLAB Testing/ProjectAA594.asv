@@ -1,0 +1,197 @@
+
+
+% Simulation Instantiation Function
+% Thomas Key
+% AA594 Project Spring 2024
+
+
+% Notes:
+% 
+%
+% The simuation uses QUATERNIONS. Matrices are used for visualization only.
+% Quaternions have the VECTOR as the FIRST THREE entries, scalar after.
+% ALL UNITS are SI. Conversions to imperial are SEPARATE VARIABLES.
+% ALL ANGLES are going to be in RADIANS. Always specify if not radians.
+% Orbital distances are in KM unless otherwise specified. Always specify.
+% Control distances are in M unless otherwise specified. Always specify.
+
+close all
+clear all
+clc
+
+
+
+% Global Orbital Parameters
+
+gG = 9.81; % Gravity for Earth
+rE = 6371; % Earth radius in KM
+
+
+
+% Situtional Orbital Parameters
+
+initAlt = 100; 
+initPos = [rE + initAlt,0,0];
+initVel = [0,5,0]; % A particularly fast circular orbit, for now. KM/s
+
+
+
+% Plant Conditions
+
+initXang = 0;
+initYang = 0;
+initZang = 0; % rad
+initAngVec = [initXang;initYang;initZang];
+
+initXrot = 0;
+initYrot = 0;
+initZrot = 1; % rad/s
+initRotVec = [initXrot;initYrot;initZrot];
+
+mIx = 1;
+mIy = 1;
+mIz = 1; % kg * m^2
+mImat = diag([mIx mIy mIz]);
+
+
+initQuat = angle2quat(initZang,initYang,initXang)';
+
+
+
+qOmega = @(w) [0,-w(1),-w(2),-w(3); ...
+               w(1),0,w(3),-w(2); ...
+               w(2),-w(3),0,w(1); ...
+               w(3),w(2),-w(1),0];
+
+crossMat = @(v) [0,-v(3),v(2); ...
+                 v(3),0,-v(1); ...
+                 -v(2),v(1),0];
+
+
+stepTot = 100; % Total steps
+q_Val = horzcat(initQuat,zeros(4,stepTot)); % Quaternion container
+w_Val = horzcat(initRotVec,zeros(3,stepTot)); % Omega container
+yawVals = zeros(1,stepTot);     % Yaw results container
+pitchVals = zeros(1,stepTot);   % Pitch results container
+rollVals = zeros(1,stepTot);    % Roll results container
+qDot = zeros(4,stepTot); % Quaternion derivative container (needed?)
+torqueVec = zeros(3,stepTot);
+torqueVec(:,1) = [0,10,1];
+
+
+tStep = 0.05;                % Time-step
+timeTotal = tStep*stepTot;   % Overall sim length
+tVals = linspace(0,timeTotal,stepTot); % Time values
+
+for ii = 1:(stepTot)
+
+    wDot(:,ii) = inv(mImat)*torqueVec(:,ii) - inv(mImat)*crossMat(w_Val(:,ii))*mImat*w_Val(:,ii);
+    w_Val(:,ii+1) = w_Val(:,ii) + wDot(:,ii).*tStep;
+    qDot(:,ii) = (0.5).*(qOmega(w_Val(:,ii)))*q_Val(:,ii); % Qdot calc
+    q_Val(:,ii+1) = q_Val(:,ii) + qDot(:,ii).*tStep; % Step forward
+    [yawVals(ii),pitchVals(ii),rollVals(ii)] = quat2angle(q_Val(:,ii)');
+
+end
+
+% Quaternion values 
+
+% figure(1)
+% hold on
+% grid on
+% plot(tVals,q_Val(4,1:end-1),'k')
+% 
+% figure(2)
+% hold on
+% grid on
+% plot(tVals,q_Val(1,1:end-1),'k')
+% 
+% figure(3)
+% hold on
+% grid on
+% plot(tVals,q_Val(2,1:end-1),'k')
+% 
+% figure(4)
+% hold on
+% grid on
+% plot(tVals,q_Val(3,1:end-1),'k')
+
+
+figure(5)
+hold on
+grid on
+plot(tVals,rollVals,'k')
+title('Roll')
+
+figure(6)
+hold on
+grid on
+plot(tVals,pitchVals,'k')
+title('Pitch')
+
+figure(7)
+hold on
+grid on
+plot(tVals,yawVals,'k')
+title('Yaw')
+
+% figure(8)
+% hold on
+% grid on
+% plot(tVals,w_Val(1,1:100),'k')
+% title('Wx')
+% 
+% figure(9)
+% hold on
+% grid on
+% plot(tVals,w_Val(2,1:100),'k')
+% title('Wy')
+% 
+% figure(10)
+% hold on
+% grid on
+% plot(tVals,w_Val(3,1:100),'k')
+% title('Wz')
+
+% % DOES NOT RUN ON MAC :( GOTTA BE WINDOWS
+
+sampleTime = 0.01; % Seconds
+stopTime = 10; % Seconds
+
+% Generate environment for simulation
+world = sim3d.World();
+
+% Generate actor objects
+satCyl = sim3d.Actor('ActorName','SatCube');
+createShape(satCyl,'cylinder',[0.5,0.5,0.75]);
+
+plane = sim3d.Actor();
+createShape(plane,'plane',[5, 5, 0.1]);
+
+% Define satellite model parameters
+satCyl.Mobility = sim3d.utils.MobilityTypes.Movable;
+%
+satCyl.Gravity = true;
+%
+satCyl.Physics = true;
+satCyl.Translation = [0, 0, 5];
+satCyl.Translation = [0, 0, 0];
+satCyl.Color = [1, 0, 1];
+satCyl.Shadows = false;
+satCyl.Rotation = [0, 0, 0];
+satCyl.Scale = [1, 1, 1];
+
+
+
+% Add actors
+add(world,satCyl);
+add(world,plane);
+
+% Create FOV
+viewport = createViewport(world, Translation = [-4.5, 0, 1]);
+
+% Run simulation
+run(world,sampleTime,stopTime)
+
+% Delete the active world
+delete(world)
+

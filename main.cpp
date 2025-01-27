@@ -144,7 +144,7 @@ int main() {
 	// Texture
 	// GL_RBG --> .jpg
 	// GL_RBGA --> .png
-	Texture knifeDuck("UW_Logo.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
+	Texture knifeDuck("knife_duck.jpg", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGB, GL_UNSIGNED_BYTE);
 	knifeDuck.texUnit(shaderProgram, "tex0", 0);
 
 	//// Pyramid rotation parameters
