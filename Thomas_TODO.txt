@@ -1,6 +1,25 @@
 This is a list of tasks that I'm writing in a text file so that it's easier to remember what I can work on if I forget other components or I finish something and need another direction to take. 
 
+MATLAB Component:
 
+- 3D Representation COMPLETE
+- 3D Arbitrary attitude COMPLETE
+- RK Stepping COMPLETE
+- RKM Stepping COMPLETE
+- ode45 Stepping COMPLETE
+- Basic satellite kinematics w/ quaternions COMPLETE
+- Representation of satellite kinematics in 3D COMPLETE
+- Implementation of basic kinetics COMPLETE
+- Include basic orbital simulation 
+- Include basic 3D visualization of orbital simulation
+- Attitude control continuous time, proportional controller
+- Attitude control continuous time, PID controller
+- Attitude control continuous time, H_inf controller
+- Attitude control continuous time, Kalman filter, varied controllers
+- Attitude control discrete time, proportional controller
+- Attitude control discrete time, PID controller
+- Attitude control discrete time, H_inf controller
+- Attitude control discrete time, Kalman filter, varied controllers
 
 Comprehension:
 
