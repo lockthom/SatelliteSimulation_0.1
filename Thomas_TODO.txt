@@ -21,6 +21,22 @@ MATLAB Component:
 - Attitude control discrete time, H_inf controller
 - Attitude control discrete time, Kalman filter, varied controllers
 
+
+Python Component:
+Finish MATLAB Simulation/Visualization
+...
+
+
+C/openGL Component:
+Set up vertex array objects and formatting COMPLETE
+Set up texture mapping and movement in the frame COMPLETE
+Generate basic geometries in the system COMPLETE
+Rotate using GLM COMPLETE
+Translate using GLM COMPLETE
+Generate small custom satellite mesh
+...
+
+
 Comprehension:
 
 File: shaderClass.h 
@@ -31,3 +47,12 @@ Line: std::ifstream in(filename, std::ios::binary);
 File: shaderClass.cpp
 Task Figure out exactly how the error management works.
 Line: void Shader::compileErrors(unsigned int shader, const char* type) { ... }
+
+
+
+
+Other Additional Considerations:
+
+Start framework for Hill's Dynamics/Clohessy Wiltshire Equations
+Determine if it would be reasonable to account for clock timing in the overall control system
+Evasion of 2 bodies instead of rendezvous between them
