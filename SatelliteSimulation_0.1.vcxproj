@@ -71,20 +71,20 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\include;Libraries\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\lib;Libraries\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>Libraries\include;$(IncludePath);C:\Users\keyth\source\repos\SatelliteSimulation_0.1\Libraries\include;C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\include</IncludePath>
+    <LibraryPath>Libraries\lib;$(LibraryPath);C:\Users\keyth\source\repos\SatelliteSimulation_0.1\Libraries\lib;C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\include;Libraries\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\lib;Libraries\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>Libraries\include;$(IncludePath);C:\Users\keyth\source\repos\SatelliteSimulation_0.1\Libraries\include;C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\include</IncludePath>
+    <LibraryPath>Libraries\lib;$(LibraryPath);C:\Users\keyth\source\repos\SatelliteSimulation_0.1\Libraries\lib;C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\include;C:\Users\keyth\source\repos\SatelliteSimulation_0.1\Libraries\include;Libraries\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\lib;C:\Users\keyth\source\repos\SatelliteSimulation_0.1\Libraries\lib;Libraries\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\keyth\source\repos\SatelliteSimulation_0.1\Libraries\include;Libraries\include;$(IncludePath);C:\Users\keyth\source\repos\SatelliteSimulation_0.1\Libraries\include;C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\include</IncludePath>
+    <LibraryPath>C:\Users\keyth\source\repos\SatelliteSimulation_0.1\Libraries\lib;Libraries\lib;$(LibraryPath);C:\Users\keyth\source\repos\SatelliteSimulation_0.1\Libraries\lib;C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\include;Libraries\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\lib;Libraries\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>Libraries\include;$(IncludePath);C:\Users\keyth\source\repos\SatelliteSimulation_0.1\Libraries\include;C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\include</IncludePath>
+    <LibraryPath>Libraries\lib;$(LibraryPath);C:\Users\keyth\source\repos\SatelliteSimulation_0.1\Libraries\lib;C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\lib</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
