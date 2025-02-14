@@ -79,8 +79,8 @@
     <LibraryPath>Libraries\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>Libraries\include;$(IncludePath)</IncludePath>
-    <LibraryPath>Libraries\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\keyth\source\repos\SatelliteSimulation_0.1\Libraries\include;Libraries\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\keyth\source\repos\SatelliteSimulation_0.1\Libraries\lib;Libraries\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>Libraries\include;$(IncludePath)</IncludePath>
@@ -159,7 +159,7 @@
     <None Include="default.vert" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\glad\src\glad.c" />
+    <ClCompile Include="..\..\..\..\..\openGL_content\glad\src\glad.c" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="EBO.cpp" />
     <ClCompile Include="main.cpp" />
