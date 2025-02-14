@@ -1,1 +1,1 @@
-Thesis starting version. Getting openGL to play nicely with 3D rendering. Will be supplemented by other repos using Python/Matlab/etc. 
+Use of this repository on a local machine will require the addition of glad.c to the solution and readjustments for the library and include paths for the system. It is tedious, but it is the simpest way that I - a beginner in openGL - can make this project reasonably work on my laptop and my desktop. 
