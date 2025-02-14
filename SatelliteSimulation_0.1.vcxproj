@@ -159,7 +159,7 @@
     <None Include="default.vert" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\glad\src\glad.c" />
+    <ClCompile Include="..\..\..\..\..\openGL_content\glad\src\glad.c" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="EBO.cpp" />
     <ClCompile Include="main.cpp" />
