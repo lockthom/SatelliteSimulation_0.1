@@ -71,20 +71,20 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>Libraries\include;$(IncludePath)</IncludePath>
-    <LibraryPath>Libraries\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\include;Libraries\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\lib;Libraries\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>Libraries\include;$(IncludePath)</IncludePath>
-    <LibraryPath>Libraries\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\include;Libraries\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\lib;Libraries\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\keyth\source\repos\SatelliteSimulation_0.1\Libraries\include;Libraries\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\keyth\source\repos\SatelliteSimulation_0.1\Libraries\lib;Libraries\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\include;C:\Users\keyth\source\repos\SatelliteSimulation_0.1\Libraries\include;Libraries\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\lib;C:\Users\keyth\source\repos\SatelliteSimulation_0.1\Libraries\lib;Libraries\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>Libraries\include;$(IncludePath)</IncludePath>
-    <LibraryPath>Libraries\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\include;Libraries\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Thomas\Programming\SatelliteSimulation_0.1\Libraries\lib;Libraries\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -159,7 +159,7 @@
     <None Include="default.vert" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\..\openGL_content\glad\src\glad.c" />
+    <ClCompile Include="..\glad\src\glad.c" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="EBO.cpp" />
     <ClCompile Include="main.cpp" />
