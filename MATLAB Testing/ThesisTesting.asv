@@ -115,9 +115,10 @@ function outQ_der = qDeriv45(t,y,J,Ji)
 
     % Torque testing
     t_Test = -5/(t+2); % Torque slowly decreases
+    t_Test2 = sin(t);
 
     % Body kinetics
-    wTerm1 = Ji*([0;0;t_Test]);
+    wTerm1 = Ji*([t_Test2;0;t_Test]);
     wTerm2 = -Ji*(cross((y(1:3)),J*y(1:3)));
     outW_der = wTerm1 + wTerm2;
 
@@ -363,7 +364,8 @@ if (run3D == true)
     % Timestamp text
     textTime = sim3d.graphics.Text(ActorName='TimeText', Translation = [0.75 -0.75 -0.25], Rotation = [0 0 pointingAngle]);
     textTime.Color = [0 0 0];
-    textTime.String = strcat("Time: ", "00.0" , " s");
+    formatSpec = '%.3f';
+    textTime.String = strcat("Time: ", num2str(world.SimulationTime,formatSpec), " s");
     add(world,textTime);
     
     % Define a coordinate syste,
@@ -374,7 +376,7 @@ if (run3D == true)
     
     % Include actors
     box = sim3d.Actor(ActorName='Box');               % Generate actor
-    createShape(box,'box',[0.25 0.5 0.75]);          % Add box mesh to actor
+    createShape(box,'box',[0.25 0.5 0.75]);           % Add box mesh to actor
     box.Color = [0.1 0.1 0.1];                        % Set color of actor
     box.Mobility = sim3d.utils.MobilityTypes.Movable; % Make actor mobile
     box.CoordinateSystem = coordSys;                  % Set actor coord. system
@@ -399,14 +401,14 @@ if (run3D == true)
     stoptime = no_of_steps*sampletime;
     
     % % Not sure how to get pacing to actually work. Bug?
-    % world.EnablePacing = true;
-    % world.PacingRate = 0.04;
+    world.EnablePacing = true;
+    world.PacingRate = 0.04;
     
     % Run world
     run(world,sampletime,stoptime)
     
     % Delete world upon end of sim
-    delete(world);
+    % delete(world);
 
 end
 
@@ -420,7 +422,7 @@ end
         yRot = world.UserData.RotationValues(currentStep, 2);
         xRot = world.UserData.RotationValues(currentStep, 1);
         box.Rotation = [xRot, yRot, zRot];
-        cTime = num2str(floor(world.SimulationTime));
+        cTime = num2str(world.SimulationTime,'%.2f');
         if currentStep == 251
 
             A = 1;

@@ -144,12 +144,12 @@ int main() {
 	// Texture
 	// GL_RBG --> .jpg
 	// GL_RBGA --> .png
-	Texture knifeDuck("knife_duck.jpg", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGB, GL_UNSIGNED_BYTE);
+	Texture knifeDuck("UW_Logo.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
 	knifeDuck.texUnit(shaderProgram, "tex0", 0);
 
-	//// Pyramid rotation parameters
-	//float rotation = 0.0f;
-	//double prevTime = glfwGetTime();
+	// Pyramid rotation parameters
+	float rotation = 0.0f;
+	double prevTime = glfwGetTime();
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -175,13 +175,13 @@ int main() {
 		camera.Inputs(window);
 		camera.Matrix(45.0f, 0.1f, 100.0f, shaderProgram, "camMatrix");
 
-		/*double crntTime = glfwGetTime();
+		double crntTime = glfwGetTime();
 		if (crntTime - prevTime >= 1 / 60) {
 
 			rotation += 2.0f;
 			prevTime = crntTime;
 
-		}*/
+		}
 		
 		// Bind texture
 		knifeDuck.Bind();

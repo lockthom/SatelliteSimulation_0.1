@@ -401,14 +401,14 @@ if (run3D == true)
     stoptime = no_of_steps*sampletime;
     
     % % Not sure how to get pacing to actually work. Bug?
-    % world.EnablePacing = true;
-    % world.PacingRate = 0.04;
+    world.EnablePacing = true;
+    world.PacingRate = 0.5;
     
     % Run world
     run(world,sampletime,stoptime)
     
     % Delete world upon end of sim
-    delete(world);
+    % delete(world);
 
 end
 
