@@ -152,7 +152,7 @@ function out_orbitParams = rv2params(muEarth, rVec,vVec)
 
 end
 
-% NOT FUNCTIONING
+% NOT FUNCTIONING, needs to be tested again
 orbitParams = rv2params(muEarth,[-6045;-3490;2500],[-3.457;6.618;2.533]);
 
 
