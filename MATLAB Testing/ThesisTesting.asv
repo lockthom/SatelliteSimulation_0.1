@@ -54,20 +54,20 @@ initQuat = initQuat/norm(initQuat); % Normalize
 
 %% Orbital Initial Conditions & Physical Parameters
 
-rEarth = 6378.137; % (meters) WGS84 Ellipsoid approximation
+rEarth = 6378137; % (meters) WGS84 Ellipsoid approximation
 mEarth = 5.9722e24; % (kilogram) IAU Selected Astronomical Constants
 gravConst = 6.67430e-11; % (m^2 kg^-1 s^-2) NIST Reference 2022 Codata
-muEarth = (398600.4418); % (km^3 s^-2) Ries, J. C. 1992 "...Determination of the Gravitational Constant of the Earth" pp. 529-531
+muEarth = (398600.4418)*(1000.^3); % (m^3 s^-2) Ries, J. C. 1992 "...Determination of the Gravitational Constant of the Earth" pp. 529-531
 
 % ISS Orbital Parameters 2025, Feb. 14
 orbitIncl = deg2rad(51.6371);   % rad
 orbitEcct = 0.0003865;          % unitless
 orbitRaan = deg2rad(193.6981);  % degrees
-orbitPaps = 414 + rEarth;       % kilometers
-orbitApog = 419 + rEarth;       % kilometers
+orbitPaps = 414*1000 + rEarth;  % meters
+orbitApog = 419*1000 + rEarth;  % meters
 orbitArgp = deg2rad(315.5499);  % rad
 
-orbitSemi = (0.5)*(orbitPaps + orbitApog);              % kilometers
+orbitSemi = (0.5)*(orbitPaps + orbitApog);              % meters
 orbitAngm = sqrt(muEarth*orbitSemi*(1 - orbitEcct.^2)); % kg m^2 s^-1
 orbitPeri = 2*pi*sqrt( (orbitSemi.^3)/(muEarth) );      % s
 
@@ -140,8 +140,8 @@ end
 function out_orbitParams = rv2params(muEarth, rVec,vVec)
     % rVec & vVec are X, Y, Z in inertial frame
 
-    % rVec - kilometers
-    % vVec - kilometers/second
+    % rVec - meters
+    % vVec - meters/s
 
     rVal = sqrt(dot(rVec,rVec));
 
@@ -419,9 +419,9 @@ y_o45 = y_o45';
 w_Val_o45 = y_o45(1:3,:); % Outputs are reasonable
 q_Val_o45 = y_o45(4:end,:);
 
-initR = [8000; 0; 6000];
-initV = [0; 7; 0];
-[t_orbit,y_orbit] = ode45(@(t,y) orbitDeriv(t, y, muEarth), [0 6*hours], [initR;initV]);
+initR = [8000; 0; 6000]*1000;
+initV = [0; 5; 5]*1000;
+[t_orbit,y_orbit] = ode45(@(t,y) orbitDeriv(t, y, muEarth), [0 4*hours], [r]);
 y_orbit = y_orbit';
 
 figure(90)
@@ -429,8 +429,7 @@ hold on
 grid on
 plot3(y_orbit(1,1),y_orbit(2,1),y_orbit(3,1),'ro')
 plot3(y_orbit(1,:),y_orbit(2,:),y_orbit(3,:),'k')
-axis equal
-view([1,1,.4])
+view(3)
 title('Testing Orbital Path')
 xlabel('x')
 ylabel('y')
