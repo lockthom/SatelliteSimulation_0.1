@@ -14,6 +14,7 @@
 % Control distances are in M unless otherwise specified. Always specify.
 %
 %
+%
 % Frames of Reference
 %
 % B - Body Frame
@@ -28,15 +29,17 @@ clc
 %% Satellite Initial Conditions & Physical Parameters
 
 % Define initial attitude and angular velocity
-initXang = 0*(pi/4);
+initXang = 0*(pi/4); % radians
 initYang = 0*(pi/4);
 initZang = 0*(pi/4);
 
-initXrot = 0*(pi/64);
-initYrot = 10*(pi/64);
-initZrot = 0*(pi/64); % rad/s
+initXrot = 0*(pi/64); % radians/s
+initYrot = 0*(pi/64);
+initZrot = 0*(pi/64); 
 
-initRotVec = [initXrot;initYrot;initZrot];
+initRotVec = [initXrot;
+              initYrot;
+              initZrot];
 
 
 % Define mass distribution
@@ -50,177 +53,6 @@ inv_mJmat = inv(mJmat);
 % Generate initial quaternion
 initQuat = angle2quat(initZang,initYang,initXang)';
 initQuat = initQuat/norm(initQuat); % Normalize
-
-
-%% Orbital Initial Conditions & Physical Parameters
-
-rEarth = 6378.137; % (meters) WGS84 Ellipsoid approximation
-mEarth = 5.9722e24; % (kilogram) IAU Selected Astronomical Constants
-gravConst = 6.67430e-11; % (m^2 kg^-1 s^-2) NIST Reference 2022 Codata
-muEarth = (398600.4418); % (km^3 s^-2) Ries, J. C. 1992 "...Determination of the Gravitational Constant of the Earth" pp. 529-531
-
-% ISS Orbital Parameters 2025, Feb. 14
-orbitIncl = deg2rad(51.6371);   % rad
-orbitEcct = 0.0003865;          % unitless
-orbitRaan = deg2rad(193.6981);  % degrees
-orbitPaps = 414 + rEarth;       % kilometers
-orbitApog = 419 + rEarth;       % kilometers
-orbitArgp = deg2rad(315.5499);  % rad
-
-orbitSemi = (0.5)*(orbitPaps + orbitApog);              % kilometers
-orbitAngm = sqrt(muEarth*orbitSemi*(1 - orbitEcct.^2)); % kg m^2 s^-1
-orbitPeri = 2*pi*sqrt( (orbitSemi.^3)/(muEarth) );      % s
-
-
-% Aerodynamic Drag to be added later
-
-% Oblateness of the Earth
-
-% Zonal Harmonics from Curtis, Orbital Mechanics for Engineering Students
-% Better approximations Shaub and Junkins (2009) p. 553 (for future)
-earthJ2 = 0.00108263;            % First Zonal Harmonic
-
-
-
-%% Orbital Function Definitions
-
-% Convert orbital parameters to RV (See Curtis p 191)
-function out_RV = params2rv(muEarth, orbitParams)
-    % orbitParams:
-    % 
-    % angm - Angular momentum
-    % incl - Inclination
-    % raan - Right Ascencion of the Ascending Node
-    % ecct - Eccentricity
-    % argp - Argument of Perigee
-    % tano - True Anomaly
-
-    % This should be converted to use quaternions in the future.
-
-    % Position Perifocal
-    rVal_p = ((orbitParams(1).^2)./muEarth).*(1./(1 + orbitParams(4).*cos(orbitParams(6))));
-    rVec_p = rVal_p*[cos(orbitParams(6));sin(orbitParams(6));0];
-
-    % Velocity Perifocal
-    vVal_p = muEarth./orbitParams(1);
-    vVec_p = vVal_p.*[-sin(orbitParams(6));orbitParams(4) + cos(orbitParams(6));0];
-
-    % Annoying Rotation Matrices
-    argp_c = cos(orbitParams(5));
-    argp_s = sin(orbitParams(5));
-    raan_c = cos(orbitParams(3));
-    raan_s = sin(orbitParams(3));
-    incl_c = cos(orbitParams(2));
-    incl_s = sin(orbitParams(2));
-
-    Q_z_argp = [ argp_c, argp_s, 0;
-                -argp_s, argp_c, 0;
-                 0,      0,      1];
-    
-    Q_z_raan = [ raan_c, raan_s, 0;
-                -raan_s, raan_c, 0;
-                 0,      0,      1];
-
-    Q_x_incl = [ 1,      0,      0;
-                 0,  incl_c, incl_s;
-                 0, -incl_s, incl_c];
-
-    Q_tot = (Q_z_argp*Q_x_incl*Q_z_raan)';
-
-    
-    rVec = Q_tot*rVec_p;
-    vVec = Q_tot*vVec_p;
-
-
-    out_RV = [rVec;vVec];
-
-end
-
-% Convert RV to orbital parameters
-function out_orbitParams = rv2params(muEarth, rVec,vVec)
-    % rVec & vVec are X, Y, Z in inertial frame
-
-    % rVec - kilometers
-    % vVec - kilometers/second
-
-    rVal = sqrt(dot(rVec,rVec));
-
-    vRad = dot(rVec,vVec)/rVal;
-
-    angmVec = cross(rVec,vVec);
-    angmVal = sqrt(dot(angmVec,angmVec));
-
-    incl = acos(angmVec(3)/angmVal);
-
-    nodeVec = cross([0;0;1],angmVec);
-    nodeVal = sqrt(dot(nodeVec,nodeVec));
-
-    if nodeVec(2) >= 0 
-
-        raan = acos(nodeVec(1)/nodeVal);
-
-    elseif nodeVec(2) < 0
-
-        raan = 2*pi - acos(nodeVec(1)/nodeVal);
-
-    end
-
-    ecctVec = (1./muEarth).*(cross(vVec,angmVec) - rVec.*(muEarth./rVal));
-    ecctVal = sqrt(dot(ecctVec,ecctVec));
-
-    if ecctVec(3) >= 0
-
-        argp = acos((dot(nodeVec,ecctVec))./(nodeVal.*ecctVal));
-
-    elseif ecctVec(3) < 0
-
-        argp = 2*pi - acos((dot(nodeVec,ecctVec))./(nodeVal.*ecctVal));
-
-    end
-
-    if (vRad >= 0)
-
-        tano = acos(dot(ecctVec,rVec)./(ecctVal.*rVal));
-
-    elseif (vRad < 0)
-
-        tano = 2.*pi - acos(dot(ecctVec,rVec)./(ecctVal.*rVal));
-
-    end
-
-    out_orbitParams = [angmVal;incl;raan;ecctVal;argp;tano];
-
-end
-
-
-function out_orbitDeriv = orbitDeriv(~, rv_Input, muEarth)
-
-    rVec = rv_Input(1:3);
-    vVec = rv_Input(4:6);
-    rVal = norm(rVec);
-    oParam = (muEarth./(rVal.^3));
-    
-    % rhoDensity = 10e-13; % kg m^-3
-    % C_d = 2.2;
-    % ArVal = pi.*(1); % m^2
-    % massVal = 100; % kg
-    % v_Rel_vec = rv_Vecs(4:end) - cross([0;0;(72.9211e-6)],rv_Vecs(1:3)); % m/s
-    % p_Aero = -(0.5).*(rhoDensity).*(norm(v_Rel_vec).^2).*(C_d).*(ArVal).*(1./massVal).*v_Rel_vec; % N
-
-    distForce = [0;0;0];
-
-    rdot = vVec;
-    vdot = -oParam.*rVec + distForce;
-
-    out_orbitDeriv = [rdot;vdot];
-
-
-end
-% Tests to confirm accuracy, based on examples in Curtis Chapter 4
-%orbitParams_results = rv2params(muEarth,[-6045000;-3490000;2500000],[-3457;6618;2533]); % m^3 s^-2, meters, m/s
-%rv_Results  = params2rv(muEarth,[80000*(1000^2);deg2rad(30);deg2rad(40);1.4;deg2rad(60);deg2rad(30)]);
-
-
 
 
 %% Attitude Function Definitions
@@ -311,7 +143,6 @@ timeTotal = 20;                            % Overall sim length
 stepTot   = ceil(timeTotal/tStep);         % Calculate amount of steps
 tVals     = linspace(0,timeTotal,stepTot); % Time values
 
-% tVals_orbit = linspace(0, 4*hours, 1000);
 
 %% Simulation parameters
 
@@ -411,31 +242,13 @@ for ii = 1:(stepTot)
 end
 
 
-%% ode45 (RKDP) for Attitude and Orbital Propagation 
+%% ode45 (RKDP) for Attitude Propagation 
 
 
 [t_o45, y_o45] = ode45(@(t,y) qDeriv45(t, y, mJmat, inv_mJmat), tVals, [w_Val_o45(:, 1); q_Val_o45(:, 1)]);
 y_o45 = y_o45';
 w_Val_o45 = y_o45(1:3,:); % Outputs are reasonable
 q_Val_o45 = y_o45(4:end,:);
-
-initR = [8000; 0; 6000];
-initV = [0; 7; 0];
-[t_orbit,y_orbit] = ode45(@(t,y) orbitDeriv(t, y, muEarth), [0 6*hours], [initR;initV]);
-y_orbit = y_orbit';
-
-figure(90)
-hold on
-grid on
-plot3(y_orbit(1,1),y_orbit(2,1),y_orbit(3,1),'ro')
-plot3(y_orbit(1,:),y_orbit(2,:),y_orbit(3,:),'k')
-axis equal
-view([1,1,.4])
-title('Testing Orbital Path')
-xlabel('x')
-ylabel('y')
-zlabel('z')
-
 
 
 %% Visualization

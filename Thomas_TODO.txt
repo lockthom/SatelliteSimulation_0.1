@@ -10,7 +10,8 @@ MATLAB Component:
 - Basic satellite kinematics w/ quaternions COMPLETE
 - Representation of satellite kinematics in 3D COMPLETE
 - Implementation of basic kinetics COMPLETE
-- Include basic orbital simulation 
+- Include basic orbital simulation COMPLETE
+- Include orbital perturbations using universal anomalies IN PROGRESS
 - Include basic 3D visualization of orbital simulation
 - Attitude control continuous time, proportional controller
 - Attitude control continuous time, PID controller
@@ -38,6 +39,10 @@ Generate small custom satellite mesh
 
 
 Comprehension:
+
+File: orbitalVisualization.m
+Task: Make a better case for the use of Universal Variables (and gain better intuition for them)
+Function: orbit_UniVar(...)
 
 File: shaderClass.h 
 Task: Figure out exactly how the code works as it was found from a youtube video.
