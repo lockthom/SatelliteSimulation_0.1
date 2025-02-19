@@ -47,6 +47,13 @@
     <None Include="default.vert">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="MATLAB Testing\orbitalVisualization.m" />
+    <None Include="MATLAB Testing\attitudeVisualization.m" />
+    <None Include="MATLAB Testing\first3Dtest.m" />
+    <None Include="MATLAB Testing\orbitalPathTesting.asv" />
+    <None Include="MATLAB Testing\orbitalVisualization.asv" />
+    <None Include="MATLAB Testing\ProjectAA594.asv" />
+    <None Include="MATLAB Testing\ThesisTesting.asv" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EBO.cpp">
@@ -73,7 +80,7 @@
     <ClCompile Include="Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\..\openGL_content\glad\src\glad.c">
+    <ClCompile Include="glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -157,6 +157,13 @@
   <ItemGroup>
     <None Include="default.frag" />
     <None Include="default.vert" />
+    <None Include="MATLAB Testing\attitudeVisualization.m" />
+    <None Include="MATLAB Testing\first3Dtest.m" />
+    <None Include="MATLAB Testing\orbitalPathTesting.asv" />
+    <None Include="MATLAB Testing\orbitalVisualization.asv" />
+    <None Include="MATLAB Testing\orbitalVisualization.m" />
+    <None Include="MATLAB Testing\ProjectAA594.asv" />
+    <None Include="MATLAB Testing\ThesisTesting.asv" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
