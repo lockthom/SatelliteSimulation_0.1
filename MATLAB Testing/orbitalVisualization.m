@@ -3,6 +3,8 @@ close all
 clear all
 clc
 
+% random comment for testing
+
 %% Overall Parameters
 
 hours = 3600;     % Hours to seconds
