@@ -60,13 +60,13 @@ void Camera::Inputs(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
 
 		// Increase speed while shift is pressed
-		speed = 0.4f;
+		speed = 0.04f;
 
 	}
 	else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE) {
 
 		// Return to normal speed upon release of shift
-		speed = 0.1f;
+		speed = 0.01f;
 
 	}
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {

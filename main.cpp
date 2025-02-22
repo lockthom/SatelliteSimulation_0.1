@@ -10,7 +10,7 @@
 #include<glm/gtc/matrix_transform.hpp> // "
 #include<glm/gtc/type_ptr.hpp>         // Allow pointers
 
-// User defined classes
+// Thomas custom C classes
 #include"Texture.h"     // Textures
 #include"shaderClass.h" // Make shaders
 #include"VAO.h"         // Vertex Array Object

@@ -30,7 +30,7 @@ muEarth = (398600.4418); % (km^3 s^-2) Ries, J. C. 1992 "...Determination of the
 % 
 % orbitSemi = (0.5)*(orbitPaps + orbitApog);              % kilometers
 % orbitAngm = sqrt(muEarth*orbitSemi*(1 - orbitEcct.^2)); % kg m^2 s^-1
-% orbitPeri = 2*pi*sqrt( (orbitSemi.^3)/(muEarth) );      % seconds
+% orbitPeri = 2*pi*sqr t( (orbitSemi.^3)/(muEarth) );      % seconds
 
 
 % Zonal Harmonics from Curtis, Orbital Mechanics for Engineering Students
@@ -55,7 +55,7 @@ function out_orbitUniVar = orbitUniVar(earthParams, rVec, vVec, del_t, configVal
     % Needs functionality for failed condition with tolerances and step
     % sizes when calculating the universal anomaly. 
 
-    % Pull out relevant info
+    % Pull out relevant info for stepping
     stepMax  = configVals(1);
     tolVal   = configVals(2);
     muEarth  = earthParams(1);
@@ -70,9 +70,9 @@ function out_orbitUniVar = orbitUniVar(earthParams, rVec, vVec, del_t, configVal
     % alphaVal > 0 --> Ellipse
     alphaVal = 2./rVal - ((vVal.^2)./muEarth);
 
-    % Good estimate for initial uano
+    % Good estimate for initial uano (Chobotov, 2002) citation from Curtis
     uano = sqrt(muEarth).*abs(alphaVal).*del_t;
-    uano_ratio   = 1;
+    uano_ratio = 1;
     stepVal = 0;
     while abs(uano_ratio) > tolVal && stepVal <= stepMax
 
@@ -102,7 +102,7 @@ function out_orbitUniVar = orbitUniVar(earthParams, rVec, vVec, del_t, configVal
         uano_c0 = (rVal).*(vRad).*(1./sqrt(muEarth));
         uano_c1 = (1 - alphaVal.*rVal);
 
-        f_uano   = uano_c0.*(uniparam.^2).*cStumpff + uano_c1.*(uniParam.^3).*sStumpff + rVal.*uniParam - sqrt(muEarth).*del_t;
+        f_uano   = uano_c0.*(uniParam.^2).*cStumpff + uano_c1.*(uniParam.^3).*sStumpff + rVal.*uniParam - sqrt(muEarth).*del_t;
         df_duano = uano_c0.*uniParam.*(1 - alphaVal.*(uniParam.^2).*sStumpff) + uano_c1.*(uniParam.^2).*cStumpff + rVal;
 
         uano_ratio = f_uano./df_duano;
@@ -111,8 +111,11 @@ function out_orbitUniVar = orbitUniVar(earthParams, rVec, vVec, del_t, configVal
 
     end
 
-    % With the now-calculated Universal Anomaly determine Lagrange Coeffs.
-    % Stumpff functions already hold most recent value
+    % At the end of this while loop the Universal Anomaly is available in
+    % the uano variable. The stumpff functions don't need to have any
+    % memory so the most recent value is already stored. The universal
+    % anomaly is placed into Lagrange coefficients for the calculation of
+    % the osculating orbit.
 
     f_L  = 1 - ((uano.^2)./rVal).*cStumpff;
     g_L  = del_t - (1./sqrt(muEarth)).*(uano.^3).*sStumpff;
@@ -124,7 +127,8 @@ function out_orbitUniVar = orbitUniVar(earthParams, rVec, vVec, del_t, configVal
 
     vNew = df_L.*rVal + dg_L.*vVal;
 
-
+    % This output is the osculating orbit after some time del_t. It does
+    % not account for any perturbations.
     out_orbitUniVar = [rNew; vNew];
 
 
@@ -261,6 +265,8 @@ function out_oblateForce = oblateForce(earthParams, rVec)
     force_y = force_constant1.*(rVec(2)./rVal).*(force_constant2 - 1);
     force_z = force_constant1.*(rVec(3)./rVal).*(force_constant2 - 3);
 
+    F     = 1 - (rosc/rpp)^3;
+    del_a = -mu/rosc^3*(del_r - F*Rpp) + ap;
 
     out_oblateForce = [force_x;
                        force_y;
@@ -296,8 +302,6 @@ function out_orbitDeriv = orbitDeriv(~, rv_Input, earthParams)
 
 end
 
-
-
 % Tests to confirm accuracy, based on examples in Curtis Chapter 4
 %orbitParams_results = rv2params(muEarth,[-6045000;-3490000;2500000],[-3457;6618;2533]); % m^3 s^-2, meters, m/s
 %rv_Results  = params2rv(muEarth,[80000*(1000^2);deg2rad(30);deg2rad(40);1.4;deg2rad(60);deg2rad(30)]);
@@ -306,20 +310,20 @@ end
 %% Initial Conditions and Parameters
 
 % Initial orbital parameters:
-zp0 = 300;                      % Perigee altitude (km)
-za0 = 3062;                     % Apogee altitude (km)
-RA0 = 45*deg;                   % Right ascension of the node (radians)
-i0  = 28*deg;                   % Inclination (radians)
-w0  = 30*deg;                   % Argument of perigee (radians)
-TA0 = 40*deg;                   % True anomaly (radians)
+zp0 = 300;                       % Perigee altitude (km)
+za0 = 3062;                      % Apogee altitude (km)
+RA0 = 45*deg;                    % Right ascension of the node (radians)
+i0  = 28*deg;                    % Inclination (radians)
+w0  = 30*deg;                    % Argument of perigee (radians)
+TA0 = 40*deg;                    % True anomaly (radians)
  
 % Calculated values
-rp0 = rEarth + zp0;             % Perigee radius (km)
-ra0 = rEarth + za0;             % Apogee radius (km)
-e0  = (ra0 - rp0)/(ra0 + rp0);  % Eccentricity
-a0  = (ra0 + rp0)/2;            % Semimajor axis (km)
-h0  = sqrt(rp0*muEarth*(1+e0));      % Angular momentum (km^2/s)
-T0  = 2*pi/sqrt(muEarth)*a0^1.5;     % Period (s)
+rp0 = rEarth + zp0;              % Perigee radius (km)
+ra0 = rEarth + za0;              % Apogee radius (km)
+e0  = (ra0 - rp0)/(ra0 + rp0);   % Eccentricity
+a0  = (ra0 + rp0)/2;             % Semimajor axis (km)
+h0  = sqrt(rp0*muEarth*(1+e0));  % Angular momentum (km^2/s)
+T0  = 2*pi/sqrt(muEarth)*a0^1.5; % Period (s)
 
 
 %% Method: ode45 only
@@ -380,33 +384,38 @@ vVec_i = rv_Inits(4:6);
 rVal_i = norm(rVec_i);
 vVal_i = norm(vVec_i);    
  
-
-
 t0      = 0; 
 tf      = 2*days;                   % Initial and final time (s)
 del_t   = T0/100;                   % Time step for Encke procedure
 options = odeset('maxstep', del_t); % Tolerance
 t       = t0;                       % Initialize the time scalar
 tsave   = t0;                       % Initialize the vector of solution times
-y       = [rVec_i; vVec_i];          % Initialize the state vector
-del_y0  = zeros(6,1);               % Initialize the state vector perturbation
+y       = [rVec_i; vVec_i];         % Initialize the state vector
+del_r   = [0;0;0];                        % Initialize position deviation
+del_v   = [0;0;0];                        % Initialize velocity deviation
+del_y0  = [del_r, del_v];               % Initialize the state vector perturbation
+
  
 t = t + del_t;                      %First time step
  
 %   Loop over the time interval [t0, tf] with equal increments del_t:
 while t <= tf + del_t/2
     
-    % Simulate orbit over one timestep.
-    [~,z] = ode45(@(t, y) rates(t, y, earthParams), [t0 t], del_y0, options);
+    % Simulate the total perturbation by the end of the timestep
+     [~,z] = ode45(@(t, y) rates(t, y, earthParams), [t0 t], del_y0, options);
     
-    % At the new position, determine the osculating orbit
+    % Determine the osculating orbit at the end of the timestep
     maxSteps = 1000;
     tolVal = 1.e-8;
     uano_Params = [maxSteps;
                    tolVal];
-    [rOsc, vOsc] = orbit_UniVar(earthParams, rVec_i, vVec_i, t-t0, uano_Params);
+    [oscVals] = orbit_UniVar(earthParams, rVec_i, vVec_i, t-t0, uano_Params);
  
-    % At the new point, add effects of orbital perturbations
+    % At the new point, add effects of orbital perturbations (rectify)
+
+    rOsc = oscVals(1:3);
+    vOsc = oscVals(4:6);
+
     rVec_i     = rOsc + z(end,1:3);
     vVec_i     = vOsc + z(end,4:6);
 
@@ -501,7 +510,10 @@ del_v = f(4:6)';     %Velocity deviation
  
 %...Compute the state vector on the osculating orbit at time t
 %   (Equation 12.5) using Algorithm 3.4:
-[rOsc,vOsc] = orbitUniVar(earthParams, del_r, del_v, t-t0, [1000;1.e-8]);
+[oscVals] = orbitUniVar(earthParams, del_r, del_v, t, [1000;1.e-8]);
+
+rOsc = oscVals(1:3);
+vOsc = oscVals(4:6);
  
 %...Calculate the components of the state vector on the perturbed orbit
 %   and their magnitudes:
