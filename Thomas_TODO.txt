@@ -40,18 +40,24 @@ Generate small custom satellite mesh
 
 Comprehension:
 
-File: orbitalVisualization.m
-Task: Make a better case for the use of Universal Variables (and gain better intuition for them)
-Function: orbit_UniVar(...)
+File: simultaneousSimulation.m
+Task: Confirm behavior of aeroDrag() with Curtis. Rewrite comments for the functions so they are more easily read. Include solar pressure in the propagation. Once complete, start on the 3D visualization of the orbiter.
 
 File: shaderClass.h 
 Task: Figure out exactly how the code works as it was found from a youtube video.
 Line: std::ifstream in(filename, std::ios::binary); 
 
-
 File: shaderClass.cpp
 Task Figure out exactly how the error management works.
 Line: void Shader::compileErrors(unsigned int shader, const char* type) { ... }
+
+File: orbitalVisualization.m
+Task: Make a better case for the use of Universal Variables (and gain better intuition for them)
+Function: orbit_UniVar(...) COMPLETE
+
+
+
+
 
 
 

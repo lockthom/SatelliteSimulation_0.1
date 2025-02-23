@@ -339,7 +339,7 @@ end
 rv_Inits = params2rv(bodyParams, orbitParams);
  
 t0      = 0; 
-tF      = 5*orbitPeri;                   % Initial and final time (s)
+tF      = 1*hours;                   % Initial and final time (s)
 tS      = t0;
 del_t   = orbitPeri/100;                   % Time step for Encke procedure
 options = odeset('maxstep', del_t); % Tolerance
@@ -363,15 +363,17 @@ tC = t0 + del_t;
 % Consider Sperling Burdet
 while tC <= tF + del_t/2
      
-    % orbitDisp = rates
+    % Determine the derivative of the displacements from osculating orbit
+    % defined at the beginning of the timestep.
     [~,disp_derivs] = ode45(@(t,y) orbitDisp(t, y, rv_Inits, tp, bodyParams, uano_Params), [tp tC], pVec);
 
     % At the starting point, propagate the orbit as if there were no
     % perturbations at all, to determine where the orbiter would have been.
     [oscVals] = orbitUniVar(bodyParams, rv_Inits, del_t, uano_Params);
 
-    % Add the changes in position and velocity to the ideal location, using
-    % data from the previous step (or initial conditions)
+    % Add the changes in position and velocity that were calculated through
+    % the displacement derivatives to add the displacement to the
+    % osculating orbit.
     rvP = oscVals + disp_derivs(end,:)';
 
     % Save time
@@ -386,8 +388,6 @@ while tC <= tF + del_t/2
     % New timestep
     tp = tC;
     tC = tC + del_t;
-
-    pVec = zeros(6,1); % Needed?
 
 
 end

@@ -44,7 +44,8 @@ inv_mJmat = inv(mJmat);
 satCD = 2.2;
 satA  = 1; % Should adjust for quaternion, but isn't super important now.
 
-satParams = [satCD; satA];
+satParams = [satCD;
+             satA]
 
 
 % Generate initial quaternion
@@ -445,12 +446,12 @@ function out_aeroDrag = aeroDrag(bodyParams, satParams, rvVec)
 
     vRel = rvVec(4:6) - cross([0;0;bodyParams(5)],rvVec(1:3));
 
-    out_aeroDrag = (0.5)*(density)*(norm(vRel)^2)*C_D*A*vRel;
+    force_drag = (0.5)*(density)*(norm(vRel)^2)*C_D*A;
 
 end
 
 % Sum forces and generate deviations
-function out_orbitDisp = orbitDisp(t, pVec, rv_Current, tp, bodyParams, satParams, configVals)
+function out_orbitDisp = orbitDisp(t, pVec, rv_Current, tp, bodyParams, configVals)
     % Inputs:
     % 1: t           -> Time in seconds
     % 2: rv_Input    -> Position and Velocity in 6x1 vector (km)
@@ -473,13 +474,13 @@ function out_orbitDisp = orbitDisp(t, pVec, rv_Current, tp, bodyParams, satParam
     % Not yet included
 
     % Combine all active forces
-    distForce = force_aeroDrag; % + others;
+    distForce = force_oblateness; % + others;
 
     % Determine del_a and del_v
     r_K = norm(rv_Current(1:3));
     r_P = r_K + norm(pVec(1:3));
 
-    F     = 1 - (r_K/r_P)^3; % Adjust from the book, when you have time
+    F     = 1 - (r_K/r_P)^3; % Adjust from the book
     del_a = -(bodyParams(1)/(r_K^3))*(pVec(1:3) - F*rv_Pert(1:3)) + distForce;
      
     out_orbitDisp  = [pVec(4:6); del_a]; 
@@ -490,7 +491,6 @@ end
 %% Simulation Pacing/Timing/Discretization for Attitude
 
 hours = 3600;
-days  = 24*hours;
 
 tStep     = 0.04;                          % Time-step (0.04~24fps)
 timeTotal = 20;                            % Overall sim length
@@ -507,9 +507,9 @@ tVals     = linspace(0,timeTotal,stepTot); % Time values
 rv_Inits = params2rv(bodyParams, orbitParams);
  
 t0      = 0; 
-tF      = 100*days;                 % Initial and final time (s)
+tF      = 5*hours;                   % Initial and final time (s)
 tS      = t0;
-del_t   = orbitPeri/10;            % Time step for Encke procedure
+del_t   = orbitPeri/100;                   % Time step for Encke procedure
 options = odeset('maxstep', del_t); % Tolerance
 
 
@@ -532,7 +532,7 @@ tC = t0 + del_t;
 while tC <= tF + del_t/2
      
     % orbitDisp = rates
-    [~,disp_derivs] = ode45(@(t,y) orbitDisp(t, y, rv_Inits, tp, bodyParams, satParams, uano_Params), [tp tC], pVec);
+    [~,disp_derivs] = ode45(@(t,y) orbitDisp(t, y, rv_Inits, tp, bodyParams, uano_Params), [tp tC], pVec);
 
     % At the starting point, propagate the orbit as if there were no
     % perturbations at all, to determine where the orbiter would have been.
@@ -559,36 +559,6 @@ while tC <= tF + del_t/2
 
 
 end
-
-% [X_S, Y_S, Z_S] = sphere;
-% 
-% figure(5)
-% hold on
-% grid on
-% plot3(actualOrbit(1,:), actualOrbit(2,:), actualOrbit(3,:), 'k')
-% surf(X_S * rBody, Y_S * rBody, Z_S * rBody)
-% axis equal
-% title("Orbit Propagation")
-% xlabel("X")
-% ylabel("Y")
-% zlabel("Z")
-% view(3)
-
-altVals = zeros(1,length(actualOrbit));
-for ii = 1:length(actualOrbit)
-    
-    altVals(ii) = norm(actualOrbit(1:3)) - bodyParams(3);
-
-end
-
-figure(5)
-hold on
-grid on
-plot(tS/days, altVals, 'k')
-title('Altitude over 100 Days')
-xlabel('Time (days)')
-ylabel('Altitude (km)')
- 
 
 %% Attitude Simulation parameters
 
@@ -710,7 +680,7 @@ end
 
 %% 3D Representation
 
-run3D = false;
+run3D = true;
 
 if (run3D == true)
 
