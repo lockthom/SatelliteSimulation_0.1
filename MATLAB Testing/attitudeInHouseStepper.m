@@ -54,7 +54,6 @@ inv_mJmat = inv(mJmat);
 initQuat = angle2quat(initZang,initYang,initXang)';
 initQuat = initQuat/norm(initQuat); % Normalize
 
-
 %% Attitude Function Definitions
 
 % For ode45, RK, and RKM.

@@ -3,8 +3,6 @@ close all
 clear all
 clc
 
-% random comment for testing
-
 %% Overall Parameters
 
 hours = 3600;     % Hours to seconds
@@ -14,23 +12,27 @@ deg   = pi/180;   % Degrees to radians
 
 %% Orbital Initial Conditions & Physical Parameters
 
-rBody = 6371.230; % Frédéric Chambat; Bernard Valette (2001) "Physics of the Earth and Planetary Interiors"
-rBody_equatorial = 6378.1370; % (kilometers) WGS84 Ellipsoid approximation
-mBody = 5.9722e24; % (kilogram) IAU Selected Astronomical Constants
+rBody     = 6371.230;      % Frédéric Chambat; Bernard Valette (2001) "Physics of the Earth and Planetary Interiors"
+rBody_eq  = 6378.1370;     % (kilometers) WGS84 Ellipsoid approximation
+mBody     = 5.9722e24;     % (kilogram) IAU Selected Astronomical Constants
 gravConst = (6.67430e-20); % (km^3 kg^-1 s^-2) NIST Reference 2022 Codata
-muBody = (398600.4418); % (km^3 s^-2) Ries, J. C. 1992 "...Determination of the Gravitational Constant of the Earth" pp. 529-531
+muBody    = (398600.4418); % (km^3 s^-2) Ries, J. C. 1992 "...Determination of the Gravitational Constant of the Earth" pp. 529-531
 
-% % ISS Orbital Parameters 2025, Feb. 14
-% orbitIncl = deg2rad(51.6371);   % radians
-% orbitEcct = 0.0003865;          % unitless
-% orbitRaan = deg2rad(193.6981);  % degrees
-% orbitPaps = 414 + rBody;       % kilometers
-% orbitApog = 419 + rBody;       % kilometers
-% orbitArgp = deg2rad(315.5499);  % radians
-% 
-% orbitSemi = (0.5)*(orbitPaps + orbitApog);              % kilometers
-% orbitAngm = sqrt(muBody*orbitSemi*(1 - orbitEcct.^2)); % kg m^2 s^-1
-% orbitPeri = 2*pi*sqr t( (orbitSemi.^3)/(muBody) );      % seconds
+% Initial orbital parameters: (Good comparison example with Curtis book)
+alt_p0    = 300;    % Perigee altitude (km)
+alp_a0    = 3062;   % Apogee altitude (km)
+orbitRaan = 45*deg; % Right ascension of the node (radians)
+orbitIncl = 28*deg; % Inclination (radians)
+orbitArgp = 30*deg; % Argument of perigee (radians)
+orbitTano = 40*deg; % True anomaly (radians)
+ 
+% Calculated values
+rp0        = rBody + alt_p0;           % Perigee radius (km)
+ra0        = rBody + alp_a0;           % Apogee radius (km)
+orbitEcct  = (ra0 - rp0)/(ra0 + rp0);  % Eccentricity
+a0         = (ra0 + rp0)/2;            % Semimajor axis (km)
+orbitAngm  = sqrt(rp0*muBody*(1 + orbitEcct));  % Angular momentum (km^2/s)
+orbitPeri  = 2*pi/sqrt(muBody)*a0^1.5; % Period (s)
 
 
 % Zonal Harmonics from Curtis, Orbital Mechanics for Engineering Students
@@ -40,25 +42,12 @@ bodyJ2 = 0.00108263;            % First Zonal Harmonic
 bodyParams = [muBody;
                bodyJ2;
                rBody;
-               rBody_equatorial];
+               rBody_eq];
 
 %% Initial Conditions and Parameters
 
 % Initial orbital parameters:
-zp0 = 300;                       % Perigee altitude (km)
-za0 = 3062;                      % Apogee altitude (km)
-RA0 = 45*deg;                    % Right ascension of the node (radians)
-i0  = 28*deg;                    % Inclination (radians)
-w0  = 30*deg;                    % Argument of perigee (radians)
-TA0 = 40*deg;                    % True anomaly (radians)
- 
-% Calculated values
-rp0 = rBody + zp0;              % Perigee radius (km)
-ra0 = rBody + za0;              % Apogee radius (km)
-e0  = (ra0 - rp0)/(ra0 + rp0);   % Eccentricity
-a0  = (ra0 + rp0)/2;             % Semimajor axis (km)
-h0  = sqrt(rp0*muBody*(1+e0));  % Angular momentum (km^2/s)
-T0  = 2*pi/sqrt(muBody)*a0^1.5; % Period (s)
+orbitParams = [orbitAngm, orbitIncl, orbitRaan, orbitEcct, orbitArgp, orbitTano];
 
 %% Orbital Function Definitions
 
@@ -333,7 +322,7 @@ function out_orbitDisp = orbitDisp(t, pVec, rv_Current, tp, bodyParams, configVa
     r_K = norm(rv_Current(1:3));
     r_P = r_K + norm(pVec(1:3));
 
-    F     = 1 - (r_K/r_P)^3;
+    F     = 1 - (r_K/r_P)^3; % Adjust from the book
     del_a = -(bodyParams(1)/(r_K^3))*(pVec(1:3) - F*rv_Pert(1:3)) + distForce;
      
     out_orbitDisp  = [pVec(4:6); del_a]; 
@@ -347,20 +336,18 @@ end
 % orbitUniVar(bodyParams, rvVec, del_t, configVals)
 %[testOrbitUniVar] = orbitUniVar(bodyParams, [7000;-12124;0;2.6679;4.6210;0],60*60,[1000;1.e-8]);
 
-orbitParams = [h0, i0, RA0, e0, w0, TA0];
-
 rv_Inits = params2rv(bodyParams, orbitParams);
  
 t0      = 0; 
-tF      = 2*days;                   % Initial and final time (s)
+tF      = 5*orbitPeri;                   % Initial and final time (s)
 tS      = t0;
-del_t   = T0/100;                   % Time step for Encke procedure
+del_t   = orbitPeri/100;                   % Time step for Encke procedure
 options = odeset('maxstep', del_t); % Tolerance
 
 
 % Determine the osculating orbit at the end of the timestep
-maxSteps = 1000;
-tolVal = 1.e-8;
+maxSteps    = 1000;
+tolVal      = 1.e-8;
 uano_Params = [maxSteps; tolVal];
 
 % Initial Perturbation
@@ -429,7 +416,7 @@ end
  
 figure(1)
 subplot(2,1,1)
-plot(tS/3600,(raan - RA0)/deg)
+plot(tS/3600,(raan - orbitRaan)/deg)
 title('Variation of Right Ascension')
 xlabel('hours')
 ylabel('{\it\Delta\Omega} (deg)')
@@ -438,13 +425,27 @@ grid minor
 axis tight
  
 subplot(2,1,2)
-plot(tS/3600,(argp - w0)/deg)
+plot(tS/3600,(unwrap(argp/deg) - (orbitArgp/deg)))
 title('Variation of Argument of Perigee')
 xlabel('hours')
 ylabel('{\it\Delta\omega} (deg)')
 grid on
 grid minor
 axis tight
+
+[X_S, Y_S, Z_S] = sphere;
+
+figure(5)
+hold on
+grid on
+plot3(actualOrbit(1,:), actualOrbit(2,:), actualOrbit(3,:), 'k')
+surf(X_S * rBody, Y_S * rBody, Z_S * rBody)
+axis equal
+title("Orbit Propagation")
+xlabel("X")
+ylabel("Y")
+zlabel("Z")
+view(3)
  
 % figure(2)
 % subplot(3,1,1)
