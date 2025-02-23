@@ -14,33 +14,14 @@ deg   = pi/180;   % Degrees to radians
 
 %% Orbital Initial Conditions & Physical Parameters
 
-rBody = 6371.230; % Frédéric Chambat; Bernard Valette (2001) "Physics of the Earth and Planetary Interiors"
-rBody_equatorial = 6378.1370; % (kilometers) WGS84 Ellipsoid approximation
-mBody = 5.9722e24; % (kilogram) IAU Selected Astronomical Constants
-gravConst = (6.67430e-20); % (km^3 kg^-1 s^-2) NIST Reference 2022 Codata
-muBody = (398600.4418); % (km^3 s^-2) Ries, J. C. 1992 "...Determination of the Gravitational Constant of the Earth" pp. 529-531
+muBody = 398600;
+rBody = 6378;
 
-% % ISS Orbital Parameters 2025, Feb. 14
-% orbitIncl = deg2rad(51.6371);   % radians
-% orbitEcct = 0.0003865;          % unitless
-% orbitRaan = deg2rad(193.6981);  % degrees
-% orbitPaps = 414 + rBody;       % kilometers
-% orbitApog = 419 + rBody;       % kilometers
-% orbitArgp = deg2rad(315.5499);  % radians
-% 
-% orbitSemi = (0.5)*(orbitPaps + orbitApog);              % kilometers
-% orbitAngm = sqrt(muBody*orbitSemi*(1 - orbitEcct.^2)); % kg m^2 s^-1
-% orbitPeri = 2*pi*sqr t( (orbitSemi.^3)/(muBody) );      % seconds
-
-
-% Zonal Harmonics from Curtis, Orbital Mechanics for Engineering Students
-% Better approximations Shaub and Junkins (2009) p. 553 (for future)
-bodyJ2 = 0.00108263;            % First Zonal Harmonic
+bodyJ2 = 1082.63e-6;   
 
 bodyParams = [muBody;
                bodyJ2;
-               rBody;
-               rBody_equatorial];
+               rBody];%               rBody_equatorial];
 
 %% Initial Conditions and Parameters
 
@@ -55,25 +36,16 @@ TA0 = 40*deg;                    % True anomaly (radians)
 % Calculated values
 rp0 = rBody + zp0;              % Perigee radius (km)
 ra0 = rBody + za0;              % Apogee radius (km)
-e0  = (ra0 - rp0)/(ra0 + rp0);   % Eccentricity
-a0  = (ra0 + rp0)/2;             % Semimajor axis (km)
+e0  = (ra0 - rp0)/(ra0 + rp0);  % Eccentricity
+a0  = (ra0 + rp0)/2;            % Semimajor axis (km)
 h0  = sqrt(rp0*muBody*(1+e0));  % Angular momentum (km^2/s)
 T0  = 2*pi/sqrt(muBody)*a0^1.5; % Period (s)
+ 
 
 %% Orbital Function Definitions
 
-% Convert orbital parameters to RV (See Curtis p 191)
+% Get the orbital parameters from the position and velocity
 function out_RV = params2rv(bodyParams, orbitParams)
-    % orbitParams:
-    % 
-    % angm - Angular momentum
-    % incl - Inclination
-    % raan - Right Ascencion of the Ascending Node
-    % ecct - Eccentricity
-    % argp - Argument of Perigee
-    % tano - True Anomaly
-
-    % This should be converted to use quaternions in the future.
 
     muBody = bodyParams(1);
 
@@ -116,7 +88,7 @@ function out_RV = params2rv(bodyParams, orbitParams)
 
 end
 
-% Convert RV to orbital parameters
+% Convert position and velocity to orbital parameters
 function out_orbitParams = rv2params(bodyParams, rVec,vVec)
     % rVec & vVec are X, Y, Z in inertial frame
 
@@ -144,6 +116,10 @@ function out_orbitParams = rv2params(bodyParams, rVec,vVec)
     elseif nodeVec(2) < 0
 
         raan = 2*pi - acos(nodeVec(1)/nodeVal);
+
+    else
+
+        A = 1;
 
     end
 
@@ -288,7 +264,7 @@ function out_oblateForce = oblateForce(bodyParams, rvVec)
     bodyJ2 = bodyParams(2);
     rBody_equatorial = bodyParams(3);
     
-    rVal = norm(rvVec);
+    rVal = norm(rvVec(1:3));
 
     force_constant1 = (3./2).*(bodyJ2).*(muBody).*(rBody_equatorial^2).*(rVal^(-4));
     force_constant2 = 5.*((rvVec(3)./rVal).^2);
@@ -340,12 +316,9 @@ function out_orbitDisp = orbitDisp(t, pVec, rv_Current, tp, bodyParams, configVa
 
 end
 
- 
-%% Method: Encke Integration + ode45
 
-% Test for orbitUnivar from Curtis Example 3.7
-% orbitUniVar(bodyParams, rvVec, del_t, configVals)
-%[testOrbitUniVar] = orbitUniVar(bodyParams, [7000;-12124;0;2.6679;4.6210;0],60*60,[1000;1.e-8]);
+
+%% Method: Encke Integration + ode45
 
 orbitParams = [h0, i0, RA0, e0, w0, TA0];
 
@@ -353,14 +326,14 @@ rv_Inits = params2rv(bodyParams, orbitParams);
  
 t0      = 0; 
 tF      = 2*days;                   % Initial and final time (s)
-tS      = t0;
+tS      = t0;                       % Output vector of times
 del_t   = T0/100;                   % Time step for Encke procedure
 options = odeset('maxstep', del_t); % Tolerance
 
 
 % Determine the osculating orbit at the end of the timestep
-maxSteps = 1000;
-tolVal = 1.e-8;
+maxSteps = 100;
+tolVal = 1.e-5;
 uano_Params = [maxSteps; tolVal];
 
 % Initial Perturbation
@@ -372,7 +345,7 @@ actualOrbit = rv_Inits;
 % First timestep
 tp = t0;
 tC = t0 + del_t;
-
+ 
 % Consider Sperling Burdet
 while tC <= tF + del_t/2
      
@@ -390,6 +363,12 @@ while tC <= tF + del_t/2
     % Save time
     tS = [tS,tC];
 
+    if length(tS) >= 967
+
+        A = 1;
+
+    end
+
     % Start from new location
     rv_Inits = rvP;
 
@@ -400,8 +379,7 @@ while tC <= tF + del_t/2
     tp = tC;
     tC = tC + del_t;
 
-    pVec = zeros(6,1); % Needed?
-
+    pVec = zeros(6,1);
 
 end
 
@@ -446,33 +424,3 @@ grid on
 grid minor
 axis tight
  
-% figure(2)
-% subplot(3,1,1)
-% plot(tS/3600,angm - h0)
-% title('Variation of Angular Momentum')
-% xlabel('hours')
-% ylabel('{\it\Deltah} (km^2/s)')
-% grid on
-% grid minor
-% axis tight
-% 
-% subplot(3,1,2)
-% plot(tS/3600,ecct - e0)
-% title('Variation of Eccentricity')
-% xlabel('hours')
-% ylabel('\it\Deltae')
-% grid on
-% grid minor
-% axis tight
-% 
-% subplot(3,1,3)
-% plot(tS/3600,(incl - i0)/deg)
-% title('Variation of Inclination')
-% xlabel('hours')
-% ylabel('{\it\Deltai} (deg)')
-% grid on
-% grid minor
-% axis tight
-
- 
-
