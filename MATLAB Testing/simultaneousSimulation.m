@@ -710,7 +710,7 @@ end
 
 %% 3D Representation
 
-run3D = false;
+run3D = true;
 
 if (run3D == true)
 
