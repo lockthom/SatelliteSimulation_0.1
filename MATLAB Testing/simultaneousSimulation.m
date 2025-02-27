@@ -91,6 +91,11 @@ bodyParams = [muBody;
 
 % For ode45, RK, and RKM.
 function out_qOmega = qOmega(w)
+% Inputs:
+% 1: w -> angular velocity
+%
+% Outputs:
+% 1: out_qOmega -> cross product angular velocity in 4x4 format
 
     out_qOmega =  [    0,  w(3), -w(2), w(1); ...
                    -w(3),     0,  w(1), w(2); ...
@@ -101,11 +106,15 @@ end
 
 % Quaternion multiplication
 function qM = quatMult(q1,q2)
-
-    % Quaternion derivative
-    % See: "Quaternions and Dynamics" by Basile Graf
-    % February 2007, found on Arxiv.org
-    % Page 7, eq. 12 and Page 4, eq. 3
+% Inputs:
+% 1: q1 -> Left quaternion
+% 2: q2 -> Right quaternion
+%
+% Outputs:
+% 1: qM = q1*q2 (quaternion multiplication)
+%
+% Notes: Might require updates, as there are some unity constraints that
+% are a little unusual in here.
 
     if (norm(q1) == 0)
         
@@ -137,6 +146,19 @@ end
 
 % For ode45
 function outQ_der = qDeriv45(t,y,J,Ji)
+% Inputs:
+% 1: t  -> Required time input for ode45
+% 2: y  -> State input from ode45
+% 3: J  -> Inertia Matrix
+% 4: Ji -> Inverted inertia matrix
+%
+% Outputs:
+% 1: out_qDer -> Derivative of the state (a quaternion)
+%
+% Notes: See: "Quaternions and Dynamics" by Basile Graf
+% February 2007, found on Arxiv.org
+% Page 7, eq. 12 and Page 4, eq. 3
+% Needs updates to prevent hard-coded forces
 
     % Ensure normalized quaternions
     normQin = y(4:end)./norm(y(4:end));
@@ -162,22 +184,26 @@ function outQ_der = qDeriv45(t,y,J,Ji)
 
 end
 
-% For RK and RKM
-qDeriv = @(omeg, qin) (0.5)*(omeg)*(qin);
-wDeriv = @(w_in) [0;0;0];
 
 %% Orbital Function Definitions
 
 % Convert orbital parameters to RV (See Curtis p 191)
 function out_RV = params2rv(bodyParams, orbitParams)
-    % orbitParams:
-    % 
-    % angm - Angular momentum
-    % incl - Inclination
-    % raan - Right Ascencion of the Ascending Node
-    % ecct - Eccentricity
-    % argp - Argument of Perigee
-    % tano - True Anomaly
+% Inputs:
+% 1: bodyParams  -> Set of values describing main body
+% 2: orbitParams -> Set of 6 classical orbital elements
+%
+% Outputs: 
+% 1: out_RV -> 6x1 vector holding the position and velocity (km)
+% 
+% Notes:
+% orbitParams has the form:
+% angm - Angular momentum
+% incl - Inclination
+% raan - Right Ascencion of the Ascending Node
+% ecct - Eccentricity
+% argp - Argument of Perigee
+% tano - True Anomaly
 
     % This should be converted to use quaternions in the future.
 
@@ -223,13 +249,19 @@ function out_RV = params2rv(bodyParams, orbitParams)
 end
 
 % Convert RV to orbital parameters
-function out_orbitParams = rv2params(bodyParams, rVec,vVec)
-    % rVec & vVec are X, Y, Z in inertial frame
-
-    % rVec - kilometers
-    % vVec - kilometers/second
+function out_orbitParams = rv2params(bodyParams, rvVec)
+% Inputs:
+% 1: bodyParams  -> Set of values describing main body
+% 2: rvVec      -> 6x1 vector with position, then velocity (km)
+%
+% Outputs:
+% 1: out_orbitParams -> Vector of 6 classical orbital elements.
+%
+% Notes: Values are in km
 
     muBody = bodyParams(1);
+    rVec = rvVec(1:3);
+    vVec = rvVec(4:6);
 
     rVal = sqrt(dot(rVec,rVec));
 
@@ -282,22 +314,22 @@ end
 
 % Get the Keplerian orbit position and velocity after time del_t
 function out_RVkeplerian = orbitUniVar(bodyParams, rvVec, del_t, configVals)
-    % Inputs: 
-    % 1: bodyParams -> Planetary Body Information
-    % 2: rvVec      -> Starting position and velocity
-    % 3: del_t      -> Length of timestep
-    % 4: configVals -> Tolerance for universal anomaly root-finding
-    %
-    % Outputs:
-    % 1: out_RVkeplerian -> Position and velocity after del_t
-
-    % Based off of Curtis. Neat concept, and useful for simulation.
-    % uano -> Universal Anomaly
-    % cStumpff -> "C" Stumpff Function (Karl Stumpff, 1895-1970)
-    % sStumpff -> "S" Stumpff Function
-    %
-    % Needs functionality for failed condition with tolerances and step
-    % sizes when calculating the universal anomaly. 
+% Inputs: 
+% 1: bodyParams -> Set of values describing main body
+% 2: rvVec      -> Starting position and velocity
+% 3: del_t      -> Length of timestep
+% 4: configVals -> Tolerance for universal anomaly root-finding
+%
+% Outputs:
+% 1: out_RVkeplerian -> Position and velocity after del_t
+%
+% Notes: Based off of Curtis. Neat concept, and useful for simulation.
+% uano -> Universal Anomaly
+% cStumpff -> "C" Stumpff Function (Karl Stumpff, 1895-1970)
+% sStumpff -> "S" Stumpff Function
+%
+% Needs functionality for failed condition with tolerances and step
+% sizes when calculating the universal anomaly. 
 
     % Pull out relevant info for stepping
     stepMax  = configVals(1);
@@ -380,15 +412,16 @@ end
 
 % Determine the force vector on the orbiter due to oblateness of the body
 function out_oblateForce = oblateForce(bodyParams, rvVec)
-    % Inputs:
-    % 1: bodyParams -> Planetary body information
-    % 2: rVec_osc   -> Position after time delta_t in keplerian orbit
-    %
-    % Outputs:
-    % 1: Force due to planet oblateness in 3x1 inertial vector.
+% Inputs:
+% 1: bodyParams -> Planetary body information
+% 2: rVec_osc   -> Position after time delta_t in keplerian orbit
+%
+% Outputs:
+% 1: Force due to planet oblateness in 3x1 inertial vector.
+%
+% Notes: Later on, it may be interesting to look at Shaub and Junkins (2009)
+% on page 553 for accelerations due to J3 -> J6. 
 
-    % Later on, it may be interesting to look at Shaub and Junkins (2009)
-    % on page 553 for accelerations due to J3 -> J6. 
 
     muBody = bodyParams(1);
     bodyJ2 = bodyParams(2);
@@ -410,27 +443,39 @@ function out_oblateForce = oblateForce(bodyParams, rvVec)
 end
 
 function out_aeroDrag = aeroDrag(bodyParams, satParams, rvVec)
+% Inputs:
+% 1: bodyParams -> Set of values describing main body
+% 2: satParams  -> Set of values describing satellite configuration
+% 3: rvVec      -> 6x1 vector with position, then velocity (km)
+%
+% Outputs:
+% 1: out_aeroDrag -> Aerodynamic force on body, based on altitude
+%
+% Notes: This is ugly code. It uses the idea from Curtis, but there's got
+% to be another way to simulate this in a prettier way. In essence, this
+% needs a makeover of some kind.
 
     altVal = norm(rvVec(1:3));
     C_D = satParams(1); 
     A = satParams(2);
 
+    % Altitude measurement points
     h = [0, 25, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 180, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000];
      
-    %...Corresponding densities (kg/m^3) from USSA76:  
+    % Densities (kg/m^3) from USSA76:  
     r = [1.225, 4.008e-2, 1.841e-2, 3.996e-3, 1.027e-3, 3.097e-4, 8.283e-5, 1.846e-5, 3.416e-6, 5.606e-7, 9.708e-8, 2.222e-8, 8.152e-9, 3.831e-9, 2.076e-9, 5.194e-10, 2.541e-10, 6.073e-11, 1.916e-11, 7.014e-12, 2.803e-12, 1.184e-12, 5.215e-13, 1.137e-13, 3.070e-14, 1.136e-14, 5.759e-15, 3.561e-15];     
       
-    %...Scale heights (km):
+    % Scale heights (km):
     H = [7.310, 6.427, 6.546, 7.360, 8.342, 7.583, 6.661, 5.927, 5.533, 5.703, 6.782, 9.973, 13.243, 16.322, 21.652, 27.974, 34.934, 43.342, 49.755, 54.513, 58.019, 60.980, 65.654, 76.377, 100.587, 147.203, 208.020]; 
      
-    %...Handle altitudes outside of the range:
+    % Handle altitudes outside of the range:
     if altVal > 1000
         altVal = 1000;
     elseif altVal < 0
         altVal = 0;
     end
      
-    %...Determine the interpolation interval:
+    % Determine the interpolation interval:
     for j = 1:27
         if altVal >= h(j) && altVal < h(j+1)
             i = j;
@@ -440,7 +485,7 @@ function out_aeroDrag = aeroDrag(bodyParams, satParams, rvVec)
         i = 27;
     end
      
-    %...Exponential interpolation:
+    % Exponential interpolation:
     density = r(i)*exp(-(altVal - h(i))/H(i));
 
     vRel = rvVec(4:6) - cross([0;0;bodyParams(5)],rvVec(1:3));
@@ -451,13 +496,19 @@ end
 
 % Sum forces and generate deviations
 function out_orbitDisp = orbitDisp(t, pVec, rv_Current, tp, bodyParams, satParams, configVals)
-    % Inputs:
-    % 1: t           -> Time in seconds
-    % 2: rv_Input    -> Position and Velocity in 6x1 vector (km)
-    % 3: bodyParams  -> Planetary body information
-    %
-    % Outputs:
-    % 1: out_orbitDeriv -> del_a and del_v in 6x1 vector (km)
+% Inputs:
+% 1: t           -> Time in seconds
+% 2: pVec        -> State (always starts as zero vec) for deviations
+% 3: rv_Current  -> Position and Velocity in 6x1 vector (km)
+% 4: bodyParams  -> Set of values describing main body
+% 5: satParams   -> Set of values describing satellite parameters
+% 6: configVals  -> Information about solution constraints
+%
+% Outputs:
+% 1: out_orbitDeriv -> del_a and del_v in 6x1 vector (km)
+%
+% Notes: This makes me think that I should include bodyParams and satParams
+% to be in one vector. Maybe when I move to python/C.
 
     oscVals = orbitUniVar(bodyParams, rv_Current, t - tp, configVals);
 
