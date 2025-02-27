@@ -180,3 +180,5 @@ quD_r = rotation_vector;
 quD_d = 0.5.*(quMult(translation_vector, rotation_vector));
 qD = [quD_r;quD_d];
 
+
+% Comment for testing
