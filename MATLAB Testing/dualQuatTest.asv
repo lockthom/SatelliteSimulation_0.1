@@ -183,11 +183,11 @@ end
 
 %% Define parameters
 
-translation_vector = [0;0;1];
-axis_of_rotation = [0;0;1];
-angle_of_rotation = deg2rad(45);
+translation_vector = [0;2.5;0];
+axis_of_rotation = [0;1;0];
+angle_of_rotation = deg2rad(135);
 
-starting_point = [1;0;0];
+starting_point = [1;1;0];
 starting_quaternion = [1;0;0;0];
 
 %% Set up dual quaternion to set up motion
@@ -219,6 +219,6 @@ starting_dual_part = 0.5.*(quMult([0;starting_point], starting_pure_part));
 starting_dual_quaternion = [starting_pure_part;starting_dual_part];
 
 p2_dual = quDmult(qD, starting_dual_quaternion);
-p2_result = 2.*quMult(p2_dual(5:end),quConj(p2_dual(1:4)));
+p2_result = 2.*1u
 
 A= 1;
