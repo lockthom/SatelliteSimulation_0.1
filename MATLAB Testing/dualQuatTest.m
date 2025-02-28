@@ -221,4 +221,25 @@ starting_dual_quaternion = [starting_pure_part;starting_dual_part];
 p2_dual = quDmult(qD, starting_dual_quaternion);
 p2_result = 2.*quMult(p2_dual(5:end),quConj(p2_dual(1:4)));
 
-A= 1;
+%% Generate simple dual quaternion dynamics
+
+% function out_der_dq = der_dq(dQ)
+% 
+%     out_der_dq = 0.5*quDmult()
+% 
+% end
+
+% Define initial parameters
+r1 = [1;0;0];
+v1 = [1;0;0];
+n1 = [1,0,0];
+omega1 = [0.1;0;0];
+q1 = nth2quat(n1,0);
+
+dualOmega = [[0;omega1];[0;v1]];
+
+dualVel = 0.5*quMult(q1, [0;r1]);
+dualQpos = [q1;[0;dualVel]];
+
+dualQ1 = [dualQpos;dualVel];
+
