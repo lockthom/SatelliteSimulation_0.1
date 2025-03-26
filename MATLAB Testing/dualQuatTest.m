@@ -250,7 +250,7 @@ for ii = 1:lengthIteration
 
 end
 
-A = 1;
+A = 10;
 
 % figure(1)
 % hold on
