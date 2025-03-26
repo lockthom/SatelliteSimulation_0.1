@@ -18,6 +18,16 @@ clc
 qr = [1;0;0;0]; % Standard part of quaternion
 qd = [0;0;0;0]; % Dual part of quaternion
 
+function out_quMult = quMult(q0,q1)
+
+
+    qO1 = q0(1).*q1(1) - dot(q0(2:end),q1(2:end));
+
+    qOV = q1(1).*q0(2:end) + q0(1).*q1(2:end) + cross(q0(2:end),q1(2:end));
+
+    out_quMult = [qO1;qOV];
+
+end
 
 function out_dualAddN = dualAddN(dn_L,dn_R)
     % Inputs:
@@ -50,6 +60,8 @@ function out_dualMultN = dualMultN(dn_L,dn_R)
 end
 
 function out_dualDivN = dualDivN(dn_num, dn_den)
+
+
     % Inputs:
     % 1: dn_num -> Numerator in dual number division
     % 2: dn_den -> Denominator in dual number division
@@ -68,20 +80,6 @@ function out_dualDivN = dualDivN(dn_num, dn_den)
 
     out_dualDivN =[dualDivN_rn;dualDivN_dn];
 
-end
-
-function out_quMult = quMult(qu_L, qu_R)
-    % Inputs:
-    % 1: qu_L -> Left quaternion
-    % 2: qu_R -> RIght quaternion
-    % 
-    % Output:
-    % 1: out_quMult -> Quaternion product
-
-    qu_r = qu_L(1)*qu_R(1) - dot(qu_L(2:end),qu_R(2:end));
-    qu_v = qu_L(1)*qu_R(2:end) + qu_R(1)*qu_L(2:end) + cross(qu_L(2:end),qu_R(2:end));
-
-    out_quMult = [qu_r;qu_v];
 
 end
 
@@ -183,63 +181,138 @@ end
 
 %% Define parameters
 
-translation_vector = [0;0;1];
+translation_vector = [0;0;0];
 axis_of_rotation = [0;0;1];
-angle_of_rotation = deg2rad(45);
+angle_of_rotation = deg2rad(0);
 
 starting_point = [1;0;0];
 starting_quaternion = [1;0;0;0];
 
-%% Set up dual quaternion to set up motion
+% Translation vector (move along z axis by 0 units)
+% Rotation vector (rotate about z axis 0 degrees)
 
-% Translation vector (move along z axis by 1 unit)
 translation_quaternion = [0;translation_vector];
-
-% Rotation vector (rotate about z axis 45 degrees)
 rotation_quaternion = nth2quat(axis_of_rotation, angle_of_rotation);
 rotation_quaternion = rotation_quaternion./quMag(rotation_quaternion);
 
-% Form dual quaternion components
+% Form initial dual quaternion
 quD_r = rotation_quaternion;
 quD_d = 0.5.*(quMult(translation_quaternion, rotation_quaternion));
-
-% Initialize one dual quaternion, defining the screw motion.
 qD = [quD_r;quD_d];
-qD2 = [sqrt(2)./2;0;0;sqrt(2)./2;0;5*sqrt(2)*(1./4);5*sqrt(2)*(-1./4);0];
 
-% Pull out translation component to ensure consistenc.
+% Pull out translation component to ensure consistency.
 translation_from_dual_quaternion = 2.*(quMult(quD_d,quConj(quD_r)));
+error_in_translation = abs(translation_quaternion - translation_from_dual_quaternion);
 
 
-%% Now we actually use the dual quaternion
+%% Define dual quaternion initial derivative
 
-% Convert starting point to dual quaternion format.
-starting_pure_part = starting_quaternion;
-starting_dual_part = 0.5.*(quMult([0;starting_point], starting_pure_part));
-starting_dual_quaternion = [starting_pure_part;starting_dual_part];
+% Rotation about z-axis at 0.25 rad/s
+angular_velocity_init = [0;0;0.25];
+linear_velocity_init = [0;0;0];
 
-p2_dual = quDmult(qD, starting_dual_quaternion);
-p2_result = 2.*quMult(p2_dual(5:end),quConj(p2_dual(1:4)));
+dualVel = [[0;angular_velocity_init];[0;linear_velocity_init]];
 
-%% Generate simple dual quaternion dynamics
+qD_dot_init = 0.5.*quDmult(qD,dualVel);
 
-% function out_der_dq = der_dq(dQ)
+function dynamicOutput = dynamicDeriv(~,y)
+
+    dQ = y;
+    
+    % Rotation about z-axis at 0.25 rad/s
+    angular_velocity_init = [0;0;0.25];
+    linear_velocity_init = [0;0;1];
+    
+    dualVel = [[0;angular_velocity_init];[0;linear_velocity_init]];
+
+    dynamicOutput = 0.5.*quDmult(dQ,dualVel);
+
+end
+
+[timeVals,outVals] = ode45(@dynamicDeriv,[0,60],qD);
+
+
+% Now make these values into angles and translations that are more easily
+% readable to make sure that the results here are accurate as far as is
+% relevant for the application here.
+
+lengthIteration = max(size(timeVals));
+eulerAngles = zeros(lengthIteration,3);
+t_dQ = zeros(lengthIteration,3);
+
+for ii = 1:lengthIteration
+
+    outVals = outVals';
+
+    eulerAngles(ii,:) = quat2eul(outVals(1:4,ii)');
+    tempVal = 2.*(quMult(outVals(5:end,ii), outVals(1:4,ii)));
+    t_dQ(ii,:) = tempVal(2:end);
+
+end
+
+A = 1;
+
+% figure(1)
+% hold on
+% grid on
+% title("Dual Quaternion Dynamics: Rotation about Z")
+% plot(timeVals,outVals(:,1))
+% xlabel("Time (Seconds)")
+% ylabel("Scalar Pure Quaternion Component")
+
+% figure(2)
+% hold on
+% grid on
+% title("Dual Quaternion Dynamics: Rotation about Z")
+% plot(timeVals,outVals(:,2))
+% xlabel("Time (Seconds)")
+% ylabel("Pure Quaternion First Component")
 % 
-%     out_der_dq = 0.5*quDmult()
-% 
-% end
+% figure(3)
+% hold on
+% grid on
+% title("Dual Quaternion Dynamics: Rotation about Z")
+% plot(timeVals,outVals(:,3))
+% xlabel("Time (Seconds)")
+% ylabel("Pure Quaternion Second Component")
 
-% Define initial parameters
-r1 = [1;0;0];
-v1 = [1;0;0];
-n1 = [1,0,0];
-omega1 = [0.1;0;0];
-q1 = nth2quat(n1,0);
+% figure(4)
+% hold on
+% grid on
+% title("Dual Quaternion Dynamics: Rotation about Z")
+% plot(timeVals,outVals(:,4))
+% xlabel("Time (Seconds)")
+% ylabel("Pure Quaternion Third Component")
 
-dualOmega = [[0;omega1];[0;v1]];
+figure(5)
+hold on
+grid on
+title("Dual Quaternion Dynamics: Rotation about Z")
+plot(timeVals,outVals(:,5))
+xlabel("Time (Seconds)")
+ylabel("Dual Quaternion Scalar Component")
 
-dualVel = 0.5*quMult(q1, [0;r1]);
-dualQpos = [q1;[0;dualVel]];
+figure(6)
+hold on
+grid on
+title("Dual Quaternion Dynamics: Rotation about Z")
+plot(timeVals,outVals(:,6))
+xlabel("Time (Seconds)")
+ylabel("Dual Quaternion First Component")
 
-dualQ1 = [dualQpos;dualVel];
+figure(7)
+hold on
+grid on
+title("Dual Quaternion Dynamics: Rotation about Z")
+plot(timeVals,outVals(:,7))
+xlabel("Time (Seconds)")
+ylabel("Dual Quaternion Second Component")
+
+figure(8)
+hold on
+grid on
+title("Dual Quaternion Dynamics: Rotation about Z")
+plot(timeVals,outVals(:,8))
+xlabel("Time (Seconds)")
+ylabel("Dual Quaternion Third Component")
 
